@@ -132,6 +132,8 @@
            view.oldPosition = position;
         
             [weakSelf subViewPushDown:view];
+            
+            [weakSelf actionGravityWithActiveView:view];
         }
     };
     
