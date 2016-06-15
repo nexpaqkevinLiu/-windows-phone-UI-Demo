@@ -43,6 +43,6 @@ typedef enum {
 
 + (instancetype)metroSubViewWithType:(NSInteger)type andPosition:(NSInteger)position;
 
-
++ (instancetype)metroSubViewWithType:(NSInteger)type;
 
 @end

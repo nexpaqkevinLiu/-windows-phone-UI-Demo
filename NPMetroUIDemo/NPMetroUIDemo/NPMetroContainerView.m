@@ -28,15 +28,15 @@
 
 //所有子view
 @property (nonatomic, strong) NSMutableArray *subViews;
-
+//当前激活的view
 @property (nonatomic, strong) NPMetroSubView *activeView;
+//按子view位子大小排列的数组
+@property (nonatomic, strong) NSMutableArray *asortPositons;
 
 //监听子view的移动事件
 @property (nonatomic, copy) void (^movingBlock)(NPMetroSubView *);
 //监听子view的松手事件
 @property (nonatomic, copy) void (^movingEndedBlock)(NPMetroSubView *);
-
-
 
 @end
 
@@ -82,9 +82,12 @@
 
 - (void)containerViewIncludeSubView:(NPMetroSubView *)subView{
 
+    [self addSubview:subView];
+    
     [self.subViews addObject:subView];
     
-    [self addSubview:subView];
+    [self setUpContentSize];
+    
 }
 
 - (void)containerViewIncludeSubViews:(NSArray *)subViews{
@@ -94,6 +97,38 @@
         [self containerViewIncludeSubView:subView];
     }
 }
+
+- (void)setUpContentSize{
+    
+    self.asortPositons = [NSMutableArray arrayWithArray:self.subViews];
+
+    for (int i = 0; i < self.asortPositons.count; ++i) {
+        
+        for (int j = i + 1; j < self.asortPositons.count; ++j) {
+            
+            NPMetroSubView *subView_0 = self.asortPositons[i];
+            
+            NPMetroSubView *subView_1 = self.asortPositons[j];
+            
+            if (subView_0.positions.lastObject > subView_1.positions.lastObject) {
+                
+                [self.asortPositons replaceObjectAtIndex:i withObject:subView_1];
+                
+                [self .asortPositons replaceObjectAtIndex:j withObject:subView_0];
+            }
+        }
+    }
+    
+    NPMetroSubView *lastView = self.asortPositons.lastObject;
+    
+    CGFloat contentHeight = CGRectGetMaxY(lastView.frame) + self.topMagrin;
+    
+    self.contentSize = CGSizeMake(self.superview.frame.size.width, contentHeight);
+    
+    
+}
+
+
 //监听子view移动事件
 - (void)monitorSubViewsMovingEvent{
     
@@ -147,6 +182,7 @@
         
         [weakSelf actionGravityWithActiveView:view];
         
+        [weakSelf setUpContentSize];
     };
 }
 
@@ -529,6 +565,26 @@
         
         NPMetroSubView *metroView = (NPMetroSubView *)view;
         
+        if (metroView.position == -1) {
+            
+            NPMetroSubView *lastView = self.asortPositons.lastObject;
+            
+            NSInteger lastPosition = [lastView.positions.lastObject integerValue];
+            
+            if ((5 - lastPosition % 6) >= metroView.type * 2 ) {
+                
+                metroView.position = lastPosition + 1;
+            
+            }else{
+            
+                metroView.position = (lastPosition / 6 + 1) * 6;
+            }
+        }
+        
+        NSInteger unitDistance = [self actionGravityDistaceWithGravityView:metroView];
+        
+        metroView.position -= 6 * unitDistance;
+        
         [self subViewFrameWithView:metroView];
         
         metroView.movingEndedBlock = self.movingEndedBlock;
@@ -571,5 +627,6 @@
 
     return _subViews;
 }
+
 
 @end
